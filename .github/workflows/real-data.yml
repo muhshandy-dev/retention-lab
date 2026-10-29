@@ -17,7 +17,12 @@ jobs:
         with:
           python-version: "3.13"
       - run: pip install -e ".[dev]"
-      - run: retention-lab fetch
+      - run: retention-lab fetch | tee fetch.log
+      - name: Check cleaning assumptions on the raw file
+        run: |
+          echo "## Fetch" >> "$GITHUB_STEP_SUMMARY"
+          sed 's/^/    /' fetch.log >> "$GITHUB_STEP_SUMMARY"
+          python tools/inspect_retail.py data/raw/online_retail_ii.zip | tee -a "$GITHUB_STEP_SUMMARY"
       - run: retention-lab run
       - run: python tools/verify_published.py web/public/data
       - name: Summary

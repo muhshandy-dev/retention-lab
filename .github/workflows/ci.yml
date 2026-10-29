@@ -19,7 +19,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - run: pip install -e ".[dev]"
+      - run: npm ci --prefix web
       - run: ruff check . && ruff format --check .
       - name: Download sources that the published data was built from
         run: |

@@ -87,7 +87,7 @@ export function Subgroups({ data, file, table, theme }: {
       </div>
       <details>
         <summary>Lihat angka dalam tabel</summary>
-        <div className="table-wrap">
+        <div className="table-wrap" tabIndex={0}>
           <table>
             <thead><tr><th>Kelompok</th><th className="n">Dikirimi email</th><th className="n">Tanpa email</th>
               <th className="n">Selisih</th><th className="n">Rentang 95%</th><th className="n">p</th></tr></thead>

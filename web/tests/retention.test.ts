@@ -5,7 +5,9 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { curve, matrix, type RetentionCells } from "../src/lib/retention.ts";
 
-const retention = JSON.parse(readFileSync(new URL("../public/data/retention.json", import.meta.url), "utf8"));
+// RETENTION_JSON lets the Python end-to-end test point this at a freshly built file.
+const source = process.env.RETENTION_JSON ?? new URL("../public/data/retention.json", import.meta.url);
+const retention = JSON.parse(readFileSync(source, "utf8"));
 const real = retention.status !== "missing";
 
 test("browser cohort matrix equals the published matrix", { skip: !real && "retail data not run yet" }, () => {

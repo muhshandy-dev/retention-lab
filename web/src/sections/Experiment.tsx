@@ -74,7 +74,7 @@ export function Experiment({ data, theme }: { data: ExperimentResult; theme: str
         <div className="controls"><Outcomes value={outcome} onChange={setOutcome} /></div>
         <Legend />
         <PlotFigure render={render} theme={theme} label={`Efek email pada ${OUTCOME_LABEL[outcome]}`} />
-        <div className="table-wrap">
+        <div className="table-wrap" tabIndex={0}>
           <table>
             <caption>Enam perbandingan utama. Nilai p sudah dikoreksi Holm karena ada enam uji sekaligus.</caption>
             <thead>
@@ -125,7 +125,7 @@ function Funnel({ data }: { data: ExperimentResult }) {
         yang berkunjung, peluang membeli juga sedikit lebih tinggi. Batang dibandingkan antar kelompok
         dalam kolom yang sama.
       </p>
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0}>
         <table>
           <thead>
             <tr><th>Kelompok</th><th className="n">Dikirim</th><th className="n">Berkunjung</th>
@@ -168,7 +168,7 @@ function Robustness({ data }: { data: ExperimentResult }) {
         Bootstrap ({fmtInt(data.bootstrap_spend[0].reps)} kali, seed tetap) mengecek rentang belanja
         tanpa asumsi distribusi normal, karena lebih dari 99% orang belanja nol.
       </p>
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0}>
         <table>
           <thead>
             <tr><th>Kelompok</th><th>Hasil</th><th className="n">Selisih sederhana</th>

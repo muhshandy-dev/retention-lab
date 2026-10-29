@@ -77,7 +77,7 @@ export function App() {
   return (
     <>
       <a className="sr-only" href="#isi">Langsung ke isi</a>
-      <div className="topbar">
+      <header className="topbar">
         <div className="wrap">
           <a className="brand" href="#"><Logo />Retention Lab</a>
           <nav className="nav" aria-label="Bagian">
@@ -93,7 +93,7 @@ export function App() {
             {theme === "dark" ? "☀" : "☾"}
           </button>
         </div>
-      </div>
+      </header>
       <main id="isi">
         <header className="hero">
           <div className="wrap">

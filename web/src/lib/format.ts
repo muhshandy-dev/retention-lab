@@ -88,3 +88,11 @@ export const fmtMonth = (ym: string) => {
 
 export const fmtGbp = (x: number, digits = 2) =>
   `£${id({ minimumFractionDigits: digits, maximumFractionDigits: digits }).format(x)}`;
+
+const MONTHS_LONG = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus",
+  "September", "Oktober", "November", "Desember"];
+/** "2011-12-09" -> "9 Desember 2011" */
+export const fmtDate = (iso: string) => {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${d} ${MONTHS_LONG[m - 1]} ${y}`;
+};

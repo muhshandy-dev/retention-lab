@@ -40,7 +40,8 @@ src/retention_lab/   pipeline Python (pandas, scipy, DuckDB)
   sql/               versi SQL independen untuk pembersihan dan matriks kohort
   cli.py             retention-lab fetch | run
 tests/               tes Python (termasuk data sintetis dengan retensi yang diketahui)
-tools/               verify_published.py (cek independen), serve_dist.py (server lokal + header)
+tools/               verify_published.py (cek independen), inspect_retail.py (diagnostik data
+                     mentah), serve_dist.py (server lokal + header)
 web/                 React + Vite + Arquero + Observable Plot
   src/lib/stats.ts   kembaran statistik Python untuk interaksi di browser
   tests/             tes paritas browser vs Python
@@ -72,6 +73,7 @@ membangun ulang data situs, memverifikasinya, lalu meng-commit hasilnya.
 - [docs/KRITERIA.md](docs/KRITERIA.md): kriteria penerimaan dan buktinya
 - [docs/KEAMANAN.md](docs/KEAMANAN.md): header keamanan dan alasannya
 - [docs/DEPLOY_CLOUDFLARE.md](docs/DEPLOY_CLOUDFLARE.md): langkah deploy
+- [docs/kartu-portofolio.md](docs/kartu-portofolio.md): ringkasan untuk situs portofolio
 
 ## Sumber data dan lisensi
 

@@ -45,11 +45,13 @@ export function PlotFigure({ render, label, theme, minWidth = 320 }: {
     const el = ref.current;
     if (!el || width === 0) return;
     const fig = render(Math.max(minWidth, width), readPalette());
+    // The wrapper carries the accessible name; the same numbers are in a table next to it.
+    fig.setAttribute("aria-hidden", "true");
     el.replaceChildren(fig);
     return () => fig.remove();
   }, [render, width, theme, minWidth]);
 
-  return <div className="figure" ref={ref} role="img" aria-label={label} />;
+  return <div className="figure" ref={ref} role="img" aria-label={label} tabIndex={0} />;
 }
 
 /**

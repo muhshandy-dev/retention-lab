@@ -1,7 +1,7 @@
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo, useState } from "react";
 import { categoryAxis, type Palette, PlotFigure } from "../components/PlotFigure.tsx";
-import { fmtGbp, fmtInt, fmtMonth, fmtNum, fmtPct } from "../lib/format.ts";
+import { fmtDate, fmtGbp, fmtInt, fmtMonth, fmtNum, fmtPct } from "../lib/format.ts";
 import { curve, type Filter, matrix } from "../lib/retention.ts";
 import type { RetentionResult } from "../types.ts";
 
@@ -109,7 +109,8 @@ function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }
       y: { label: null, domain: d.map((s) => s.label) },
       marks: [
         ...ax.marks,
-        Plot.barX(d, { x: "share", y: "label", fill: p.plum, insetTop: 8, insetBottom: 8, rx: 4 }),
+        Plot.barX(d, { x: "share", y: "label", fill: p.plum, rx: 4,
+          insetTop: ax.narrow ? 24 : 10, insetBottom: ax.narrow ? 8 : 10 }),
         Plot.link(d, { x1: "lo", x2: "hi", y1: "label", y2: "label", stroke: p.ink, strokeWidth: 1.5 }),
         Plot.text(d, { x: "share", y: "label", text: (s) => fmtPct(s.share), dx: 8, textAnchor: "start", fill: p.ink }),
         Plot.tip(d, Plot.pointerY({ x: "share", y: "label", title: (s) =>
@@ -146,12 +147,13 @@ function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }
           <Seg label="Nilai pesanan pertama" value={filter.tier} onChange={(tier) => setFilter({ ...filter, tier })}
             options={[["all", "Semua"], ["high", "Di atas median"], ["low", "Median ke bawah"]]} />
         </div>
+        <p className="hint only-narrow">Geser peta ke samping untuk melihat bulan-bulan berikutnya.</p>
         <PlotFigure render={heat} theme={theme} minWidth={560} label="Peta retensi kohort bulanan" />
         <p className="hint">
           Kotak abu-abu: kohort dengan kurang dari {data.min_cell} pelanggan, tidak ditampilkan.
           Kohort {fmtMonth(w.left_censored_cohort)} adalah bulan pertama data, jadi berisi juga pelanggan
           lama yang sudah belanja sebelum data dimulai; jangan dibandingkan langsung dengan kohort lain.
-          {w.partial_month_dropped && ` Data berakhir ${w.data_end}, jadi bulan terakhir yang belum penuh tidak dihitung agar tidak terlihat seperti pelanggan berhenti.`}
+          {w.partial_month_dropped && ` Data berakhir ${fmtDate(w.data_end)}, jadi bulan terakhir yang belum penuh tidak dihitung agar tidak terlihat seperti pelanggan berhenti.`}
         </p>
       </div>
       <div className="grid-2">
@@ -169,7 +171,7 @@ function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }
       <Associations data={data} />
       <div className="card">
         <h3>Pembersihan data</h3>
-        <div className="table-wrap">
+        <div className="table-wrap" tabIndex={0}>
           <table>
             <thead><tr><th>Aturan</th><th className="n">Baris dibuang</th></tr></thead>
             <tbody>
@@ -191,8 +193,8 @@ function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }
 }
 
 const EXPOSURE_LABEL: Record<string, [string, string]> = {
-  first_order_above_median: ["Pesanan pertama di atas median", "Pesanan pertama median ke bawah"],
-  country_uk: ["Pelanggan di Inggris", "Pelanggan di luar Inggris"],
+  first_order_above_median: ["Pesanan pertama di atas median", "pesanan pertama median ke bawah"],
+  country_uk: ["Pelanggan di Inggris", "pelanggan di luar Inggris"],
 };
 
 function Associations({ data }: { data: RetentionResult }) {
@@ -205,7 +207,7 @@ function Associations({ data }: { data: RetentionResult }) {
         itu yang membuat mereka kembali, bukan besarnya pesanan. Median pesanan pertama:{" "}
         {fmtGbp(data.totals.first_order_median)}.
       </p>
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0}>
         <table>
           <thead><tr><th>Perbandingan</th><th className="n">Belanja lagi dalam 90 hari</th>
             <th className="n">Rasio</th><th className="n">Rentang 95%</th><th className="n">E-value</th></tr></thead>
@@ -214,7 +216,7 @@ function Associations({ data }: { data: RetentionResult }) {
               const [yes, no] = EXPOSURE_LABEL[a.exposure] ?? [a.exposure, "lainnya"];
               return (
                 <tr key={a.exposure}>
-                  <td>{yes} dibanding {no.toLowerCase()}</td>
+                  <td>{yes} dibanding {no}</td>
                   <td className="n">{fmtPct(a.exposed_repeat / a.exposed)} vs {fmtPct(a.unexposed_repeat / a.unexposed)}</td>
                   <td className="n">{a.rr === null ? "tidak terdefinisi" : fmtNum(a.rr, 2)}</td>
                   <td className="n">{a.rr_lo === null ? "" : `${fmtNum(a.rr_lo, 2)} sampai ${fmtNum(a.rr_hi!, 2)}`}</td>
