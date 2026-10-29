@@ -1,0 +1,43 @@
+name: Real data run
+
+# Manual run that downloads both public datasets from their original hosts, rebuilds the
+# site data, verifies it independently, and commits the result to the branch it ran on.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e ".[dev]"
+      - run: retention-lab fetch
+      - run: retention-lab run
+      - run: python tools/verify_published.py web/public/data
+      - name: Summary
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          m = json.load(open("web/public/data/manifest.json"))
+          r = json.load(open("web/public/data/retention.json"))
+          print("## Sources\n```json\n" + json.dumps(m, indent=2) + "\n```")
+          if r.get("status") != "missing":
+              print("## Window\n```json\n" + json.dumps(r["window"], indent=2) + "\n```")
+              print("## Cleaning\n```json\n" + json.dumps(r["cleaning"], indent=2) + "\n```")
+              print("## Totals\n```json\n" + json.dumps(r["totals"], indent=2) + "\n```")
+              print("## SQL check\n```json\n" + json.dumps(r["sql_check"], indent=2) + "\n```")
+          PY
+          cat "$GITHUB_STEP_SUMMARY"
+      - name: Commit regenerated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/data
+          git diff --cached --quiet || git commit -m "data: rebuild from original public sources"
+          git push
