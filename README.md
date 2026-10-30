@@ -14,10 +14,10 @@ dengan jujur soal ketidakpastian:
 | Bagian | Data | Status |
 |---|---|---|
 | Eksperimen email | Hillstrom MineThatData 2008 | Diproses dari data asli |
-| Kohort retensi | Online Retail II (UCI 502) | Kode dan tes siap; **data asli belum dijalankan** |
+| Kohort retensi | Online Retail II (UCI 502) | Diproses dari data asli |
 
-Bagian kohort di situs menampilkan keadaan "belum dijalankan" sampai data asli diproses. Data
-sintetis hanya dipakai di tes otomatis dan tidak pernah diterbitkan.
+Data asli diunduh dan diproses oleh workflow **Real data run** di GitHub Actions. Data sintetis
+hanya dipakai di tes otomatis dan tidak pernah diterbitkan.
 
 ## Hasil utama eksperimen (data asli)
 
@@ -29,6 +29,20 @@ sintetis hanya dipakai di tes otomatis dan tidak pernah diterbitkan.
 Rentang 95% dalam kurung; semua enam uji tetap signifikan setelah koreksi Holm. Pengacakan lolos
 (SRM p = 0,90; selisih terstandar terbesar 0,014). Tidak ada perbedaan efek antar subgrup yang
 bertahan setelah koreksi Holm atas 24 uji heterogenitas. pp = poin persen.
+
+## Hasil utama kohort retensi (data asli)
+
+- Data bersih: 776.577 baris, 36.594 faktur, 5.824 pelanggan, Desember 2009 sampai November 2011
+  (Desember 2011 belum penuh, jadi dibuang).
+- Hanya sekitar 1 dari 5 pelanggan baru belanja lagi di bulan berikutnya: median retensi bulan
+  pertama 20,8% atas 22 kohort (terendah 9,2%, tertinggi 31,7%; kohort Desember 2009 tidak
+  dihitung).
+- Dalam 180 hari sejak belanja pertama, 56,5% pelanggan belanja lagi di hari lain (54,9% sampai
+  58,0%), dan 10,3% belanja 5 kali atau lebih.
+- Pelanggan dengan pesanan pertama di atas median 1,37 kali lebih sering belanja lagi dalam 90 hari
+  (1,27 sampai 1,47). Ini hubungan, bukan sebab-akibat; E-value 2,07. Pelanggan Inggris dan luar
+  Inggris tidak berbeda jelas (RR 0,97; 0,86 sampai 1,09).
+- Matriks SQL DuckDB dan Pandas identik di 300 sel.
 
 ## Struktur
 

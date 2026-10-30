@@ -53,7 +53,10 @@ function Seg<T extends string>({ value, options, onChange, label }: {
 function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }) {
   const [filter, setFilter] = useState<Filter>({ country: "all", tier: "all" });
   const rows = useMemo(() => matrix(data.views, filter), [data, filter]);
-  const avg = useMemo(() => curve(rows), [rows]);
+  // The first cohort mixes in customers who bought before the data starts, so it is left out
+  // of the averages, as in the funnel and the associations.
+  const avg = useMemo(() => curve(rows.filter((r) => r.cohort !== data.window.left_censored_cohort)),
+    [rows, data.window.left_censored_cohort]);
   const w = data.window;
 
   const heat = useCallback((width: number, p: Palette) => {
@@ -160,7 +163,7 @@ function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }
       <div className="grid-2">
         <div className="card">
           <h3>Rata-rata kurva retensi</h3>
-          <p className="hint">Gabungan semua kohort pada filter yang dipilih. Bulan-bulan yang jauh hanya berisi kohort lama.</p>
+          <p className="hint">Gabungan kohort pada filter yang dipilih, tanpa kohort {fmtMonth(w.left_censored_cohort)}. Bulan-bulan yang jauh hanya berisi sedikit kohort lama, jadi rentangnya lebih lebar.</p>
           <PlotFigure render={line} theme={theme} label="Kurva retensi rata-rata" />
         </div>
         <div className="card">
