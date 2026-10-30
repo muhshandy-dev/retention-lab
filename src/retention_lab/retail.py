@@ -199,6 +199,75 @@ def cohort_matrix(cells: pd.DataFrame) -> pd.DataFrame:
     return m.sort_values(["cohort", "k"]).reset_index(drop=True)
 
 
+COUNTRY_VIEWS = ("all", "uk", "non_uk")
+TIER_VIEWS = ("all", "high", "low")
+
+
+def hidden_groups(sizes: dict[tuple[str, str, str], int]) -> set[tuple[str, str, str]]:
+    """Groups (cohort, country view, tier view) that must not be published.
+
+    A group under MIN_CELL customers is hidden. So that it cannot be recovered by
+    subtraction, the other half of the same split is hidden with it, and a hidden total
+    hides both of its halves. The rules repeat until nothing changes.
+    """
+    hidden = {g for g, n in sizes.items() if n < MIN_CELL}
+    cohorts = {g[0] for g in sizes}
+    changed = True
+    while changed:
+        changed = False
+        for cohort in cohorts:
+            splits = [
+                ((cohort, c, "all"), (cohort, c, "high"), (cohort, c, "low")) for c in COUNTRY_VIEWS
+            ] + [((cohort, "all", t), (cohort, "uk", t), (cohort, "non_uk", t)) for t in TIER_VIEWS]
+            for total, a, b in splits:
+                need = {a, b} if (total in hidden or a in hidden or b in hidden) else set()
+                if need - hidden:
+                    hidden |= need
+                    changed = True
+    return hidden
+
+
+def cohort_views(cells: pd.DataFrame) -> pd.DataFrame:
+    """Cohort matrix for every filter on the site, with small groups hidden.
+
+    One row per (country view, tier view, cohort, k) on the grid of the full matrix.
+    Hidden groups carry no counts at all, not even their size.
+    """
+    grid = cohort_matrix(cells)[["cohort", "k"]]
+    frames, sizes = [], {}
+    for c in COUNTRY_VIEWS:
+        for t in TIER_VIEWS:
+            sub = cells
+            if c != "all":
+                sub = sub[sub["country_group"] == c]
+            if t != "all":
+                sub = sub[sub["value_tier"] == t]
+            active = sub.groupby(["cohort", "k"])["active"].sum()
+            size = sub[sub["k"] == 0].groupby("cohort")["size"].sum()
+            v = grid.join(active, on=["cohort", "k"]).join(size, on="cohort")
+            v = v.fillna({"active": 0, "size": 0}).astype({"active": "int64", "size": "int64"})
+            v.insert(0, "tier", t)
+            v.insert(0, "country", c)
+            frames.append(v)
+            for cohort in grid["cohort"].unique():
+                sizes[(cohort, c, t)] = int(size.get(cohort, 0))
+    views = pd.concat(frames, ignore_index=True)
+    hidden = hidden_groups(sizes)
+    views["suppressed"] = [
+        (g, c, t) in hidden
+        for g, c, t in zip(views["cohort"], views["country"], views["tier"], strict=True)
+    ]
+    ci = [st.wilson_ci(int(a), int(n)) for a, n in zip(views["active"], views["size"], strict=True)]
+    out = views.astype({"active": object, "size": object})
+    out["retention"] = [
+        a / n if n else None for a, n in zip(views["active"], views["size"], strict=True)
+    ]
+    out["lo"] = [x[0] for x in ci]
+    out["hi"] = [x[1] for x in ci]
+    out.loc[out["suppressed"], ["active", "size", "retention", "lo", "hi"]] = None
+    return out.reset_index(drop=True)
+
+
 def cohort_matrix_sql(lines: pd.DataFrame, last_full_month: str) -> pd.DataFrame:
     """Independent SQL computation of (cohort, k, active, size) from cleaned lines."""
     sql = resources.files("retention_lab").joinpath("sql/cohort.sql").read_text()
@@ -324,7 +393,7 @@ def analyse(raw: pd.DataFrame) -> dict:
             "customers": len(cust),
             "first_order_median": cust.attrs["first_order_median"],
         },
-        "cells": cells,
+        "views": cohort_views(cells),
         "matrix": matrix,
         "funnel": repeat_funnel(o, w),
         "associations": associations(o, w),

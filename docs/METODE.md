@@ -80,14 +80,18 @@ ada klaim sebab-akibat.
 **SQL vs Pandas.** Pembersihan dan matriks kohort ditulis dua kali (Pandas dan SQL DuckDB).
 Pipeline menolak menerbitkan data bila keduanya tidak identik.
 
-**Privasi.** Tidak ada nomor pelanggan atau faktur yang diterbitkan. Data situs berupa jumlah per
-(kohort, kelompok negara, tingkat nilai pesanan pertama, bulan ke-k). Kohort di bawah 10 pelanggan
-disembunyikan.
+**Privasi.** Tidak ada nomor pelanggan atau faktur yang diterbitkan. Python menghitung matriks
+kohort untuk setiap pilihan filter di situs (negara x nilai pesanan pertama, 9 tampilan), lalu
+menyembunyikan kelompok di bawah 10 pelanggan. Pasangan dari kelompok itu (separuh lain dari
+pembagian yang sama) ikut disembunyikan, dan total yang tersembunyi menyembunyikan kedua
+separuhnya, berulang sampai stabil. Dengan begitu angka yang disembunyikan tidak bisa dihitung
+balik dengan mengurangkan angka yang tampil. Kelompok tersembunyi tidak membawa angka apa pun,
+termasuk jumlah pelanggannya. `tools/verify_published.py` memeriksa aturan ini secara terpisah.
 
 ## Interaksi di browser
 
 Arquero menghitung ulang efek subgrup dari 64.000 baris Hillstrom (tanpa identitas) dan matriks
-kohort dari sel agregat. Rumus di `web/src/lib/stats.ts` adalah kembaran `stats.py`; tes paritas
+kohort per filter dari tampilan agregat yang sudah disaring. Rumus di `web/src/lib/stats.ts` adalah kembaran `stats.py`; tes paritas
 memastikan selisih relatif di bawah 1e-8 (ekspor memakai 10 digit signifikan).
 
 ## Batasan

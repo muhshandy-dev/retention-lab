@@ -173,3 +173,31 @@ def test_same_day_invoices_are_one_purchase():
     total = assoc[0]["exposed"] + assoc[0]["unexposed"]
     repeats = assoc[0]["exposed_repeat"] + assoc[0]["unexposed_repeat"]
     assert (total, repeats) == (2, 1)
+
+
+def test_hidden_group_cannot_be_recovered_by_subtraction():
+    """K10: a group under 10 is hidden together with the groups that would reveal it."""
+    sizes = {}
+    for c in retail.COUNTRY_VIEWS:
+        for t in retail.TIER_VIEWS:
+            sizes[("2010-01", c, t)] = 50
+    sizes[("2010-01", "non_uk", "high")] = 4  # small interior group
+    hidden = retail.hidden_groups(sizes)
+    # its own split partners, then their partners: all four interior groups
+    assert {("2010-01", c, t) for c in ("uk", "non_uk") for t in ("high", "low")} <= hidden
+    # margins of the 2x2 table stay visible: four unknowns, three independent sums
+    assert ("2010-01", "all", "all") not in hidden
+    assert ("2010-01", "uk", "all") not in hidden
+    sizes[("2010-01", "all", "all")] = 8  # a hidden total hides everything under it
+    assert len(retail.hidden_groups(sizes)) == 9
+
+
+def test_published_views_respect_min_cell(result):
+    _, r = result
+    v = r["views"]
+    visible = v[~v["suppressed"]]
+    assert (visible["size"] >= retail.MIN_CELL).all()
+    assert v.loc[v["suppressed"], ["active", "size", "retention"]].isna().all().all()
+    top = v[(v["country"] == "all") & (v["tier"] == "all")].reset_index(drop=True)
+    m = r["matrix"]
+    assert list(top["size"]) == list(m["size"]) and list(top["active"]) == list(m["active"])

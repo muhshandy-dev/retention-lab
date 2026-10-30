@@ -1,5 +1,5 @@
 import type { Effect } from "./lib/stats.ts";
-import type { RetentionCells } from "./lib/retention.ts";
+import type { RetentionViews } from "./lib/retention.ts";
 
 export interface EffectRow extends Effect {
   arm: string;
@@ -49,7 +49,7 @@ export interface RetentionResult {
     partial_month_dropped: boolean; left_censored_cohort: string };
   cleaning: { rule: string; rows?: number; removed?: number }[];
   totals: { lines: number; orders: number; customers: number; first_order_median: number };
-  cells: RetentionCells;
+  views: RetentionViews;
   min_cell: number;
   funnel: { window_days: number; eligible: number;
     steps: { orders: number; customers: number; share: number; lo: number; hi: number }[] };

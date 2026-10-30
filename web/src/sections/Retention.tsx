@@ -52,7 +52,7 @@ function Seg<T extends string>({ value, options, onChange, label }: {
 
 function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }) {
   const [filter, setFilter] = useState<Filter>({ country: "all", tier: "all" });
-  const rows = useMemo(() => matrix(data.cells, filter, data.min_cell), [data, filter]);
+  const rows = useMemo(() => matrix(data.views, filter), [data, filter]);
   const avg = useMemo(() => curve(rows), [rows]);
   const w = data.window;
 
@@ -73,7 +73,7 @@ function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }
         Plot.cell(cells.filter((c) => !c.suppressed), { x: "k", y: "cohort", fill: "retention", inset: 0.5, rx: 2 }),
         Plot.cell(cells.filter((c) => c.suppressed), { x: "k", y: "cohort", fill: p.line, inset: 0.5 }),
         Plot.tip(cells, Plot.pointer({ x: "k", y: "cohort", title: (r) => r.suppressed
-          ? `Kohort ${fmtMonth(r.cohort)}: kurang dari ${data.min_cell} pelanggan, disembunyikan`
+          ? `Kohort ${fmtMonth(r.cohort)}: disembunyikan untuk melindungi kelompok di bawah ${data.min_cell} pelanggan`
           : `Kohort ${fmtMonth(r.cohort)}, bulan ke-${r.k}\n${fmtPct(r.retention)} kembali (${fmtInt(r.active)} dari ${fmtInt(r.size)})\nRentang 95%: ${fmtPct(r.lo)} sampai ${fmtPct(r.hi)}` })),
       ],
     });
@@ -150,7 +150,7 @@ function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }
         <p className="hint only-narrow">Geser peta ke samping untuk melihat bulan-bulan berikutnya.</p>
         <PlotFigure render={heat} theme={theme} minWidth={560} label="Peta retensi kohort bulanan" />
         <p className="hint">
-          Kotak abu-abu: kohort dengan kurang dari {data.min_cell} pelanggan, tidak ditampilkan.
+          Kotak abu-abu: disembunyikan karena kelompoknya di bawah {data.min_cell} pelanggan, atau karena angkanya bisa dihitung balik dari kelompok lain yang tampil.
           Kohort {fmtMonth(w.left_censored_cohort)} adalah bulan pertama data, jadi berisi juga pelanggan
           lama yang sudah belanja sebelum data dimulai; jangan dibandingkan langsung dengan kohort lain.
           {w.partial_month_dropped && ` Data berakhir ${fmtDate(w.data_end)}, jadi bulan terakhir yang belum penuh tidak dihitung agar tidak terlihat seperti pelanggan berhenti.`}

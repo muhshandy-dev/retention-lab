@@ -36,6 +36,37 @@ def keys(obj, found: set[str]) -> set[str]:
     return found
 
 
+def check_views(views: dict, m: dict, min_cell: int, customers: int) -> list[str]:
+    """Small-group rule and arithmetic of the published filter views."""
+    problems: list[str] = []
+    rows = {}
+    for i in range(len(views["cohort"])):
+        key = (views["country"][i], views["tier"][i], views["cohort"][i], views["k"][i])
+        rows[key] = (views["size"][i], views["active"][i], views["suppressed"][i])
+    for (c, t, cohort, _k), (size, active, hidden) in rows.items():
+        if hidden and (size is not None or active is not None):
+            problems.append(f"hidden group publishes counts {c}/{t}/{cohort}")
+        if not hidden and (size is None or size < min_cell):
+            problems.append(f"group under {min_cell} customers published {c}/{t}/{cohort}")
+    splits = [(("all", t), ("uk", t), ("non_uk", t)) for t in ("all", "high", "low")]
+    splits += [((c, "all"), (c, "high"), (c, "low")) for c in ("all", "uk", "non_uk")]
+    for cohort, k in {(key[2], key[3]) for key in rows}:
+        for total, a, b in splits:
+            rt, ra, rb = (rows[(*v, cohort, k)] for v in (total, a, b))
+            if (rt[2] or ra[2] or rb[2]) and not (ra[2] and rb[2]):
+                problems.append(f"hidden group recoverable by subtraction {cohort} {a}/{b}")
+            if not (rt[2] or ra[2] or rb[2]) and (rt[0], rt[1]) != (ra[0] + rb[0], ra[1] + rb[1]):
+                problems.append(f"split does not add up {cohort} k={k} {total}")
+    for i in range(len(m["cohort"])):
+        size, active, hidden = rows[("all", "all", m["cohort"][i], m["k"][i])]
+        if not hidden and (size, active) != (m["size"][i], m["active"][i]):
+            problems.append(f"view all/all differs from matrix {m['cohort'][i]} k={m['k'][i]}")
+    top = [v for (c, t, _, k), v in rows.items() if (c, t, k) == ("all", "all", 0)]
+    if all(not v[2] for v in top) and sum(v[0] for v in top) != customers:
+        problems.append("customer total mismatch")
+    return problems[:20]
+
+
 def main(root: Path) -> int:
     problems: list[str] = []
     files = {p.name: json.loads(p.read_text()) for p in root.glob("*.json")}
@@ -81,19 +112,10 @@ def main(root: Path) -> int:
         if ret != {"status": "missing"}:
             problems.append("retention.json must be the missing placeholder")
     else:
-        cells, m = ret["cells"], ret["matrix"]
+        views, m = ret["views"], ret["matrix"]
         if not ret["sql_check"]["matrix_equal"]:
             problems.append("SQL and Pandas cohort matrices differ")
-        size_from_cells: dict[str, int] = {}
-        for cohort, k, size in zip(cells["cohort"], cells["k"], cells["size"], strict=True):
-            if k == 0:
-                size_from_cells[cohort] = size_from_cells.get(cohort, 0) + size
-        for cohort, k, size in zip(m["cohort"], m["k"], m["size"], strict=True):
-            if size_from_cells.get(cohort) != size:
-                problems.append(f"cohort size mismatch {cohort} k={k}")
-                break
-        if sum(size_from_cells.values()) != ret["totals"]["customers"]:
-            problems.append("customer total mismatch")
+        problems += check_views(views, m, ret["min_cell"], ret["totals"]["customers"])
         last = ret["window"]["last_full_month"]
         if any(c > last for c in m["cohort"]):
             problems.append("cohort after last full month")
