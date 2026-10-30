@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pip install -e ".[dev]"
+      - run: npm ci --prefix web
+      - run: ruff check . && ruff format --check .
+      - name: Download sources that the published data was built from
+        run: |
+          if grep -q '"online_retail_ii":{[^}]*"status":"real"' web/public/data/manifest.json; then
+            retention-lab fetch
+          else
+            retention-lab fetch --only hillstrom
+          fi
+      - run: pytest -q
+      - name: Rebuild site data and require no diff (reproducibility)
+        run: |
+          retention-lab run
+          git diff --exit-code web/public/data
+      - run: python tools/verify_published.py web/public/data
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Every built file fits the Cloudflare Pages 25 MiB limit
+        run: |
+          big=$(find dist -type f -size +25M)
+          if [ -n "$big" ]; then echo "$big"; exit 1; fi
