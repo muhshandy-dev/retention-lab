@@ -1,5 +1,6 @@
 """Publication rules: reproducible output, honest copy, independent verification."""
 
+import json
 import re
 import subprocess
 import sys
@@ -30,7 +31,20 @@ def test_rerun_is_byte_identical(tmp_path):
         assert (a / name).read_bytes() == (b / name).read_bytes(), name
 
 
-@have_raw
+def _published_sources_present() -> bool:
+    """Every source the published manifest says is real has its raw file on disk."""
+    manifest = json.loads((PUBLISHED / "manifest.json").read_text())
+    files = {"hillstrom": "hillstrom.csv.gz", "online_retail_ii": "online_retail_ii.zip"}
+    return all(
+        (RAW / files[name]).exists()
+        for name, src in manifest["sources"].items()
+        if src.get("status") == "real"
+    )
+
+
+@pytest.mark.skipif(
+    not _published_sources_present(), reason="raw files behind the published data not downloaded"
+)
 def test_committed_data_matches_pipeline(tmp_path):
     """The files the site serves are exactly what the pipeline produces from the raw data."""
     out = tmp_path / "out"

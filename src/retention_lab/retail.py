@@ -223,17 +223,25 @@ def clean_sql(raw: pd.DataFrame) -> pd.DataFrame:
 
 
 def repeat_funnel(orders_df: pd.DataFrame, window: Window) -> dict:
-    """Share of customers reaching their 2nd..5th order within 180 days of the first.
+    """Share of customers reaching their 2nd..5th purchase day within 180 days of the first.
 
-    Only customers whose first order leaves a full 180-day window before the data end
-    are counted, so late cohorts do not look worse just because they were observed less.
+    A purchase is counted per calendar day: several invoices on one day are one purchase,
+    so splitting a basket into two invoices does not look like a return visit. Only
+    customers whose first order leaves a full 180-day window before the data end are
+    counted, so late cohorts do not look worse just because they were observed less. The
+    first cohort is excluded because it mixes in customers who bought before the data
+    starts.
     """
     cust = customers(orders_df, window)
     window_end = window.last_full_month.to_timestamp(how="end").normalize()
-    eligible = cust[cust["first_ts"] + pd.Timedelta(days=REPEAT_WINDOW_DAYS) <= window_end]
+    eligible = cust[
+        (cust["cohort"] > window.first_month)
+        & (cust["first_ts"] + pd.Timedelta(days=REPEAT_WINDOW_DAYS) <= window_end)
+    ]
     o = orders_df.join(eligible["first_ts"], on="customer", how="inner")
     within = o[o["ts"] < o["first_ts"] + pd.Timedelta(days=REPEAT_WINDOW_DAYS)]
-    n_orders = within.groupby("customer").size().reindex(eligible.index, fill_value=0)
+    days = within.assign(day=within["ts"].dt.normalize())[["customer", "day"]].drop_duplicates()
+    n_orders = days.groupby("customer").size().reindex(eligible.index, fill_value=0)
     n = len(eligible)
     steps = []
     for s in range(1, FUNNEL_STEPS + 1):
@@ -258,8 +266,9 @@ def associations(orders_df: pd.DataFrame, window: Window) -> list[dict]:
         & (cust["first_ts"] + pd.Timedelta(days=ASSOCIATION_WINDOW_DAYS) <= window_end)
     ]
     o = orders_df.join(eligible["first_ts"], on="customer", how="inner")
+    # A repeat purchase is one on a later calendar day than the first order.
     later = o[
-        (o["ts"] > o["first_ts"])
+        (o["ts"].dt.normalize() > o["first_ts"].dt.normalize())
         & (o["ts"] < o["first_ts"] + pd.Timedelta(days=ASSOCIATION_WINDOW_DAYS))
     ]
     repeat = eligible.index.isin(later["customer"].unique())

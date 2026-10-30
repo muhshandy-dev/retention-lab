@@ -20,7 +20,8 @@ SOURCES = {
     "online_retail_ii": {
         "file": "online_retail_ii.zip",
         "url": "https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip",
-        "sha256": None,  # pinned after the first verified download
+        # Pinned from the first download on GitHub Actions, run 41080851602 (2026-10-30).
+        "sha256": "572e36277c2390fbfde10664750731e0a86f55e33470d91919085f0408e67bfb",
     },
 }
 

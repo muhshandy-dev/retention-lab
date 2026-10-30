@@ -136,3 +136,40 @@ def test_repeat_funnel_monotone(result):
     _, r = result
     shares = [s["share"] for s in r["funnel"]["steps"]]
     assert shares[0] == 1 and all(a >= b for a, b in zip(shares, shares[1:], strict=False))
+
+
+def _orders(rows):
+    return pd.DataFrame(
+        [
+            {
+                "Invoice": str(i),
+                "customer": c,
+                "ts": pd.Timestamp(t),
+                "revenue": 10.0,
+                "country": "United Kingdom",
+            }
+            for i, (c, t) in enumerate(rows)
+        ]
+    )
+
+
+def test_same_day_invoices_are_one_purchase():
+    o = _orders(
+        [
+            (1, "2009-12-05 10:00"),  # first cohort: excluded from funnel and associations
+            (1, "2009-12-20 10:00"),
+            (2, "2010-01-10 09:00"),  # second invoice on the same day: not a repeat
+            (2, "2010-01-10 15:00"),
+            (3, "2010-01-11 09:00"),  # repeat on a later day: counted
+            (3, "2010-02-01 09:00"),
+            (4, "2011-11-20 09:00"),  # keeps the window open until 2011-10
+        ]
+    )
+    window = retail.window_for(o)
+    funnel = retail.repeat_funnel(o, window)
+    assert funnel["eligible"] == 2
+    assert [s["customers"] for s in funnel["steps"][:2]] == [2, 1]
+    assoc = retail.associations(o, window)
+    total = assoc[0]["exposed"] + assoc[0]["unexposed"]
+    repeats = assoc[0]["exposed_repeat"] + assoc[0]["unexposed_repeat"]
+    assert (total, repeats) == (2, 1)

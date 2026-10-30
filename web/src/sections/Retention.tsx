@@ -98,7 +98,7 @@ function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }
   }, [avg]);
 
   const funnel = useCallback((width: number, p: Palette) => {
-    const d = data.funnel.steps.map((s) => ({ ...s, label: s.orders === 1 ? "1 pesanan" : `${s.orders} pesanan atau lebih` }));
+    const d = data.funnel.steps.map((s) => ({ ...s, label: s.orders === 1 ? "Belanja 1 kali" : `Belanja ${s.orders} kali atau lebih` }));
     const ax = categoryAxis(width, d.map((s) => s.label), p, 170);
     return Plot.plot({
       width, height: ax.rowHeight * d.length + 60, marginLeft: ax.marginLeft, marginRight: 56,
@@ -164,7 +164,7 @@ function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }
         </div>
         <div className="card">
           <h3>Funnel pembelian ulang</h3>
-          <p className="hint">Jumlah pesanan dalam {data.funnel.window_days} hari sejak pesanan pertama, hanya untuk {fmtInt(data.funnel.eligible)} pelanggan yang sudah diamati penuh {data.funnel.window_days} hari.</p>
+          <p className="hint">Berapa kali pelanggan belanja dalam {data.funnel.window_days} hari sejak belanja pertama. Beberapa faktur di hari yang sama dihitung satu kali. Hanya {fmtInt(data.funnel.eligible)} pelanggan yang sudah diamati penuh {data.funnel.window_days} hari; kohort Desember 2009 tidak dihitung karena bercampur dengan pelanggan lama.</p>
           <PlotFigure render={funnel} theme={theme} label="Funnel pembelian ulang" />
         </div>
       </div>

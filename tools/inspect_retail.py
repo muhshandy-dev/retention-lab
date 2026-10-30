@@ -34,8 +34,9 @@ def main(path: Path) -> None:
         lo, hi = retail.SHEET_CUTOVER, raw.loc[raw["sheet"] == 0, "InvoiceDate"].max()
         win = raw[(raw["InvoiceDate"] >= lo) & (raw["InvoiceDate"] <= hi)]
         cols = retail.RAW_COLUMNS
-        a = win[win["sheet"] == 0][cols].astype(str).value_counts()
-        b = win[win["sheet"] == 1][cols].astype(str).value_counts()
+        # dropna=False: rows with an empty customer must be compared too.
+        a = win[win["sheet"] == 0][cols].astype(str).value_counts(dropna=False)
+        b = win[win["sheet"] == 1][cols].astype(str).value_counts(dropna=False)
         same = a.sort_index().equals(b.sort_index())
         print(f"\n## Sheet overlap {lo.date()} to {hi.date()}\n")
         print(f"- sheet 0 rows: {int(a.sum()):,}; sheet 1 rows: {int(b.sum()):,}")
@@ -65,6 +66,16 @@ def main(path: Path) -> None:
         f"- countries: {raw['Country'].nunique()}; UK share of lines: "
         f"{(raw['Country'] == 'United Kingdom').mean():.1%}"
     )
+
+    lines, _ = retail.clean(raw)
+    o = retail.orders(lines).sort_values(["customer", "ts", "Invoice"])
+    o = o.assign(rank=o.groupby("customer").cumcount())
+    first = o[o["rank"] == 0].set_index("customer")["ts"]
+    second = o[o["rank"] == 1].set_index("customer")["ts"]
+    same_day = (second.dt.normalize() == first.reindex(second.index).dt.normalize()).sum()
+    print("\n## Repeat purchase definition (cleaned data)\n")
+    print(f"- customers with 2+ invoices: {len(second):,}")
+    print(f"- of which the 2nd invoice is on the same day as the 1st: {int(same_day):,}")
 
 
 if __name__ == "__main__":

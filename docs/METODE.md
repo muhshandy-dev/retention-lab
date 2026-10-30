@@ -63,12 +63,17 @@ kohort yang punya minimal satu pesanan di bulan kohort + k. Rentang 95% Wilson p
 - Kanan: data berakhir 9 Desember 2011, jadi Desember 2011 dibuang dari jendela analisis. Bulan
   parsial tidak boleh terlihat seperti pelanggan berhenti.
 - Kiri: kohort Desember 2009 (bulan pertama data) bercampur dengan pelanggan lama; ditandai di
-  situs dan tidak dipakai di analisis asosiasi.
+  situs dan tidak dipakai di funnel maupun analisis asosiasi.
 
-**Funnel pembelian ulang.** Jumlah pesanan dalam 180 hari sejak pesanan pertama, hanya untuk
-pelanggan yang diamati penuh 180 hari.
+**Satu kali belanja = satu hari.** Beberapa faktur dari pelanggan yang sama di hari yang sama
+dihitung satu kali belanja. Tanpa aturan ini, keranjang yang dipecah menjadi dua faktur terlihat
+seperti pelanggan kembali.
 
-**Asosiasi.** Rasio risiko pembelian ulang 90 hari untuk (a) nilai pesanan pertama di atas median
+**Funnel pembelian ulang.** Berapa kali pelanggan belanja dalam 180 hari sejak belanja pertama,
+hanya untuk pelanggan yang diamati penuh 180 hari. Kohort Desember 2009 tidak dihitung karena
+bercampur dengan pelanggan lama.
+
+**Asosiasi.** Pembelian ulang berarti belanja lagi di hari lain dalam 90 hari. Rasio risiko untuk (a) nilai pesanan pertama di atas median
 dan (b) pelanggan Inggris, dengan rentang log Katz dan E-value (VanderWeele & Ding 2017). Tidak
 ada klaim sebab-akibat.
 
