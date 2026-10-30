@@ -43,6 +43,8 @@ def check_views(views: dict, m: dict, min_cell: int, customers: int) -> list[str
     for i in range(len(views["cohort"])):
         key = (views["country"][i], views["tier"][i], views["cohort"][i], views["k"][i])
         rows[key] = (views["size"][i], views["active"][i], views["suppressed"][i])
+    if any(c != "all" and t != "all" for c, t, _, _ in rows):
+        problems.append("combined country and value views are not allowed")
     for (c, t, cohort, _k), (size, active, hidden) in rows.items():
         if hidden and (size is not None or active is not None):
             problems.append(f"hidden group publishes counts {c}/{t}/{cohort}")
@@ -52,6 +54,8 @@ def check_views(views: dict, m: dict, min_cell: int, customers: int) -> list[str
     splits += [((c, "all"), (c, "high"), (c, "low")) for c in ("all", "uk", "non_uk")]
     for cohort, k in {(key[2], key[3]) for key in rows}:
         for total, a, b in splits:
+            if not all((*v, cohort, k) in rows for v in (total, a, b)):
+                continue
             rt, ra, rb = (rows[(*v, cohort, k)] for v in (total, a, b))
             if (rt[2] or ra[2] or rb[2]) and not (ra[2] and rb[2]):
                 problems.append(f"hidden group recoverable by subtraction {cohort} {a}/{b}")

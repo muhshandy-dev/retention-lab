@@ -142,11 +142,12 @@ function RetentionReal({ data, theme }: { data: RetentionResult; theme: string }
           mereka yang belanja lagi sekian bulan kemudian. Makin gelap, makin banyak yang kembali.
         </p>
         <div className="controls">
-          <Seg label="Negara" value={filter.country} onChange={(country) => setFilter({ ...filter, country })}
+          <Seg label="Negara" value={filter.country} onChange={(country) => setFilter({ country, tier: "all" })}
             options={[["all", "Semua"], ["uk", "Inggris"], ["non_uk", "Luar Inggris"]]} />
-          <Seg label="Nilai pesanan pertama" value={filter.tier} onChange={(tier) => setFilter({ ...filter, tier })}
+          <Seg label="Nilai pesanan pertama" value={filter.tier} onChange={(tier) => setFilter({ country: "all", tier })}
             options={[["all", "Semua"], ["high", "Di atas median"], ["low", "Median ke bawah"]]} />
         </div>
+        <p className="hint">Satu filter aktif pada satu waktu. Gabungan negara dan nilai pesanan terlalu kecil untuk ditampilkan tanpa membuka data kelompok kecil.</p>
         <p className="hint only-narrow">Geser peta ke samping untuk melihat bulan-bulan berikutnya.</p>
         <PlotFigure render={heat} theme={theme} minWidth={560} label="Peta retensi kohort bulanan" />
         <p className="hint">

@@ -220,6 +220,8 @@ def hidden_groups(sizes: dict[tuple[str, str, str], int]) -> set[tuple[str, str,
                 ((cohort, c, "all"), (cohort, c, "high"), (cohort, c, "low")) for c in COUNTRY_VIEWS
             ] + [((cohort, "all", t), (cohort, "uk", t), (cohort, "non_uk", t)) for t in TIER_VIEWS]
             for total, a, b in splits:
+                if not {total, a, b} <= sizes.keys():
+                    continue
                 need = {a, b} if (total in hidden or a in hidden or b in hidden) else set()
                 if need - hidden:
                     hidden |= need
@@ -230,6 +232,9 @@ def hidden_groups(sizes: dict[tuple[str, str, str], int]) -> set[tuple[str, str,
 def cohort_views(cells: pd.DataFrame) -> pd.DataFrame:
     """Cohort matrix for every filter on the site, with small groups hidden.
 
+    The site filters by country or by first-order value, one at a time, giving five views.
+    Combined views are not published: most non-UK groups split by order value are under
+    MIN_CELL, and hiding their partners would grey out most of the combined matrices.
     One row per (country view, tier view, cohort, k) on the grid of the full matrix.
     Hidden groups carry no counts at all, not even their size.
     """
@@ -237,6 +242,8 @@ def cohort_views(cells: pd.DataFrame) -> pd.DataFrame:
     frames, sizes = [], {}
     for c in COUNTRY_VIEWS:
         for t in TIER_VIEWS:
+            if c != "all" and t != "all":
+                continue  # one filter at a time; the 2x2 split is too small to publish
             sub = cells
             if c != "all":
                 sub = sub[sub["country_group"] == c]

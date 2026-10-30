@@ -81,8 +81,10 @@ ada klaim sebab-akibat.
 Pipeline menolak menerbitkan data bila keduanya tidak identik.
 
 **Privasi.** Tidak ada nomor pelanggan atau faktur yang diterbitkan. Python menghitung matriks
-kohort untuk setiap pilihan filter di situs (negara x nilai pesanan pertama, 9 tampilan), lalu
-menyembunyikan kelompok di bawah 10 pelanggan. Pasangan dari kelompok itu (separuh lain dari
+kohort untuk setiap pilihan filter di situs, lalu menyembunyikan kelompok di bawah 10 pelanggan.
+Filter dipakai satu per satu (negara atau nilai pesanan pertama, 5 tampilan). Gabungan keduanya
+tidak diterbitkan karena kebanyakan kelompok luar Inggris per nilai pesanan berisi kurang dari 10
+pelanggan, sehingga hampir seluruh petanya akan tersembunyi. Pasangan dari kelompok itu (separuh lain dari
 pembagian yang sama) ikut disembunyikan, dan total yang tersembunyi menyembunyikan kedua
 separuhnya, berulang sampai stabil. Dengan begitu angka yang disembunyikan tidak bisa dihitung
 balik dengan mengurangkan angka yang tampil. Kelompok tersembunyi tidak membawa angka apa pun,
