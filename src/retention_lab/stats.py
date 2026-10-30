@@ -160,9 +160,12 @@ def simulate_power_two_proportions(
     p0: float, delta: float, n_per_arm: int, alpha: float = 0.05, sims: int = 4000, seed: int = 0
 ) -> float:
     """Monte Carlo power of the pooled z test, used to validate the analytic formula."""
+    # Draw binomial counts by inverting the CDF of uniform draws. numpy's own binomial sampler
+    # changed between releases, which made the published estimate depend on the numpy version.
     rng = np.random.default_rng(seed)
-    k1 = rng.binomial(n_per_arm, p0 + delta, sims)
-    k0 = rng.binomial(n_per_arm, p0, sims)
+    u = rng.random((2, sims))
+    k1 = stats.binom.ppf(u[0], n_per_arm, p0 + delta)
+    k0 = stats.binom.ppf(u[1], n_per_arm, p0)
     pooled = (k1 + k0) / (2 * n_per_arm)
     se = np.sqrt(pooled * (1 - pooled) * 2 / n_per_arm)
     with np.errstate(divide="ignore", invalid="ignore"):

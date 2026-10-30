@@ -13,7 +13,7 @@ diketahui; untuk bagian retail, bukti pada data asli **belum ada** sampai Online
 | K2 | Cakupan rentang Wilson 95% pada retensi yang diketahui: 92% sampai 98% | `test_wilson_coverage_on_known_retention`: 96,0% dari 276 sel | Lulus |
 | K3 | Bulan parsial terakhir dibuang, bukan dihitung churn | `test_partial_month_is_dropped_not_counted_as_churn` | Lulus (sintetis); data asli tertunda |
 | K4 | Efek RCT sama dengan statsmodels | `tests/test_stats.py`: Wilson, Newcombe, uji z, rasio log, Holm, OLS HC1 pada toleransi 1e-9; `tools/verify_published.py` menghitung ulang dari data terbit | Lulus |
-| K5 | Power analitik vs Monte Carlo selisih paling banyak 2 poin persen | `test_power_formula_agrees_with_simulation` (3 skenario); data asli: 80,9% dan 80,3% vs 80% | Lulus |
+| K5 | Power analitik vs Monte Carlo selisih paling banyak 2 poin persen | `test_power_formula_agrees_with_simulation` (3 skenario); data asli: 80,3% (membeli) dan 80,05% (berkunjung) vs 80% | Lulus |
 | K6 | SRM dan SMD dilaporkan, SMD < 0,1 | `experiment.json`: SRM p = 0,904, SMD maks 0,0137 | Lulus |
 | K7 | Koreksi Holm pada uji utama | 6 uji utama dan 24 uji heterogenitas, dicek ulang di verifier | Lulus |
 | K8 | Tidak ada kalimat kausal untuk data observasional; E-value tampil | `tests/test_publication.py::test_observational_section_makes_no_causal_claims`; E-value di `retail.associations` | Lulus untuk teks; angka E-value asli tertunda |

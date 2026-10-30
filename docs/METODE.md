@@ -40,7 +40,7 @@ dihitung, sehingga selisih t dan z di bawah 1%.
 
 **Power.** Rumus pendekatan normal untuk uji dua proporsi dengan kelompok sama besar; MDE dicari
 dengan root finding. Rumus divalidasi simulasi Monte Carlo (4.000 percobaan): pada MDE, power
-simulasi 80,9% (membeli) dan 80,3% (berkunjung), target 80%.
+simulasi 80,3% (membeli) dan 80,05% (berkunjung), target 80%. Sampel binomial dibuat dari invers CDF atas bilangan acak seragam, sehingga hasilnya sama di semua versi numpy.
 
 **Subgrup.** Efek per tingkat newbie, saluran, wilayah, dan segmen riwayat belanja. Heterogenitas
 diuji dengan Cochran Q; 24 uji Q dikoreksi Holm sebagai satu keluarga. Bersifat eksploratif.
