@@ -3,7 +3,7 @@
 **Judul:** Retention Lab
 **Subjudul:** Kohort retensi pelanggan dan eksperimen email acak, dengan ketidakpastian yang jujur
 **Kategori:** Data Analytics (BI, kohort, eksperimen A/B)
-**Tautan:** situs `https://retention-lab.pages.dev` (setelah deploy), repo `github.com/muhshandy-dev/retention-lab`
+**Tautan:** situs `<alamat pages.dev dari dashboard Cloudflare, diisi setelah deploy>`, repo `github.com/muhshandy-dev/retention-lab`
 
 ## Ringkasan (2 sampai 3 kalimat)
 
