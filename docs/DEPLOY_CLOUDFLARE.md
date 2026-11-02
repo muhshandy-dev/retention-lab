@@ -6,7 +6,8 @@
    - Project name: `retention-lab`. Nama di `pages.dev` berlaku global dan bisa sudah dipakai orang
      lain (pada 2 November 2026 `retention-lab.pages.dev` sudah dimiliki proyek lain). Kalau
      begitu, pakai nama lain, misalnya `customer-retention-lab`. Alamat yang sah ada di dashboard,
-     tab Deployments atau Custom domains.
+     tab Deployments atau Custom domains. Untuk deploy pertama alamatnya
+     `https://retention-lab-d6m.pages.dev` (Cloudflare menambah akhiran `-d6m`).
    - Production branch: `main`
    - Framework preset: None
    - Root directory: `web`
